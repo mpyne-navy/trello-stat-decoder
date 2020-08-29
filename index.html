@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="id=edge">
+
+    <link rel="stylesheet" href="paper.min.css">
+
+    <title>Trello Board Decoder</title>
+
+    <!-- Trello Board Decoder
+        Let's you load Trello board data as a JSON blob and pick out specific bits that I
+        personally care about and download it as a CSV file, all without
+        calling out to any other website on the Internet, in a way that can be
+        used from any modern web browser.
+
+        Copyright (c) 2020 Michael Pyne <michael.pyne@gmail.com>
+    -->
+<style>
+.drop_hover {
+    border: 2px solid green;
+}
+
+#output {
+    margin-top: 2em;
+    background: darkgray;
+    color: white;
+    font-family: monospace;
+}
+
+div.div_hidden {
+    display: none;
+}
+
+table.tbl_hidden {
+    display: none;
+}
+</style>
+</head>
+
+<body>
+  <div class="row site">
+    <div class="paper container">
+      <div class="col sm-12 padding-top-large">
+        <nav class="fixed split-nav border">
+            <div class="nav-brand">
+                <h3><a href="#">Trello Stat Dumper</a></h3>
+            </div>
+
+            <div class="collapsible">
+                <input id="collapsible1" type="checkbox" name="nav_collapsible1">
+                <button>
+                    <!-- These are 'structural' for the CSS to show a hamburger menu without JS -->
+                    <label for="collapsible1">
+                        <div class="bar1"></div>
+                        <div class="bar2"></div>
+                        <div class="bar3"></div>
+                    </label>
+                </button>
+
+                <div class="collapsible-body">
+                    <ul class="inline">
+                        <li><a href="https://www.github.com/mpyne-navy/trello-stat-decoder/">See the source on Github</a></li>
+                    </ul>
+                </div>
+            </div>
+        </nav>
+
+        <!-- For a simple single page application we just break each page in the 'flow' into
+             unique divs with names starting with ui_. We use Javascript to set the appropriate
+             style
+        -->
+        <div id="ui_load_data" class="div_hidden">
+            <div id="file_drop_target">Drop your Trello JSON file on me to load<br><br>
+
+                Or enter a file to upload: <input type='file' id='file_load_target'></input>
+            </div>
+
+            <div id="file_load_msg" class="div_hidden row flex-spaces">
+                <input class="alert-state" id="file_load_alert" type="checkbox">
+
+                <div class="alert alert-secondary dismissable">
+                    Loading the Trello data...
+                    <label class="btn-close" for="file_load_alert">X</label>
+                </div>
+            </div>
+        </div>
+
+        <div id="ui_show_tasks">
+            <div id="output">
+            </div>
+
+            <table id="tbl_unit_list" class="tbl_hidden">
+                <thead>
+                    <tr>
+                        <th>UIC</th>
+                        <th>Activity Name</th>
+                    </tr>
+                </thead>
+                <tbody id="tbl_unit_list_rows">
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Never used, should be hidden by the JS automatically -->
+        <div id="ui_noscript_warning">
+            <h4>Javascript is disabled</h4>
+
+            <div class="row flex-spaces">
+                <div class="alert alert-primary">This page requires Javascript to work.</div>
+            </div>
+        </div>
+
+        <script>
+            const noscript_div = document.getElementById('ui_noscript_warning');
+            noscript_div.classList.add('div_hidden');
+        </script>
+
+        <!-- Javascript application using the UI shell defined above -->
+
+        <script>
+            // Logging function, also goes to the web page
+            function output(txt) {
+                const outputDiv = document.getElementById('output');
+                outputDiv.innerHTML = txt;
+                console.log(`output: ${txt}`);
+            }
+
+            // UI function, hides all UI divs and then shows the desired ui_* div
+            function showPage(div_id) {
+                // We need to hide all ui_* divs, then show the div we've been
+                // passed as an argument
+                const div_list = document.querySelectorAll('div[id^="ui_"]');
+                for(const div of div_list) {
+                    div.classList.add("div_hidden");
+                }
+
+                const div_to_show = document.getElementById(div_id);
+                if (div_to_show) {
+                    div_to_show.classList.remove("div_hidden");
+                }
+            }
+
+            //
+            // Application start
+            //
+
+            // global vars
+            var g_tasks;
+
+            showPage('ui_load_data');
+
+            //
+            // Event handlers (use globals)
+            //
+
+            function handleFileLoad(files) {
+                const file = files[0];
+                const reader = new FileReader();
+
+                document.getElementById('file_load_msg').classList.remove('div_hidden');
+
+                reader.onload = (e) => {
+                    const resultObj  = JSON.parse(e.target.result);
+
+                    output(`Board loaded, ${resultObj.cards.length} cards`);
+                }
+
+                reader.onerror = (e) => {
+                    console.error(`Unable to load file ${file}!: ${e}`);
+                }
+
+                // Use a timeout to ensure the U/I updates before we block so the banner
+                // we took pains to unhide shows up
+                window.requestAnimationFrame(() => {
+                    reader.readAsText(file)
+                    });
+            }
+
+            function handleFileUpload(e) {
+                console.log("Handling file upload");
+                handleFileLoad(e.target.files);
+            }
+
+            function handleFileDrop(e) {
+                e.stopPropagation(); e.preventDefault();
+
+                console.log("Handling file DND");
+                handleFileLoad(e.dataTransfer.files);
+
+                let dropTarget = document.getElementById('file_drop_target');
+                dropTarget.classList.remove('drop_hover');
+            }
+
+            function handleDragEnter(e) {
+                e.preventDefault();
+                e.dataTransfer.dropEffect = 'copy';
+
+                let dropTarget = document.getElementById('file_drop_target');
+                dropTarget.classList.add('drop_hover');
+            }
+
+            function handleDragLeave(e) {
+                e.preventDefault(); e.stopPropagation();
+
+                let dropTarget = document.getElementById('file_drop_target');
+                dropTarget.classList.remove('drop_hover');
+            }
+
+            // ui_load_data forms
+            let dropTarget = document.getElementById('file_drop_target');
+            dropTarget.addEventListener('drop', handleFileDrop, false);
+
+            dropTarget.addEventListener('dragenter', handleDragEnter, false);
+            dropTarget.addEventListener('dragover',  handleDragEnter, false); // Same fn on purpose
+            dropTarget.addEventListener('dragleave', handleDragLeave, false);
+
+            let uploadTarget = document.getElementById('file_load_target');
+            uploadTarget.addEventListener('change', handleFileUpload, false);
+
+        </script>
+      </div>
+    </div>
+  </div>
+</body>
+</html>
