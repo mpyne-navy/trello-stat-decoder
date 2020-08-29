@@ -24,9 +24,10 @@
 
 #output {
     margin-top: 2em;
-    background: darkgray;
+    background: green;
     color: white;
     font-family: monospace;
+    padding: 8pt;
 }
 
 div.div_hidden {
@@ -35,6 +36,10 @@ div.div_hidden {
 
 table.tbl_hidden {
     display: none;
+}
+
+table#tbl_card_list {
+    font-size: 9pt;
 }
 </style>
 </head>
@@ -82,14 +87,15 @@ table.tbl_hidden {
             <div id="output">
             </div>
 
-            <table id="tbl_unit_list">
+            <table id="tbl_card_list">
                 <thead>
                     <tr>
                         <th>Title</th>
-                        <th>Archived?</th>
+                        <th>ListID</th>
+                        <th>FirstMemberID</th>
                     </tr>
                 </thead>
-                <tbody id="tbl_unit_list_rows">
+                <tbody id="tbl_card_list_rows">
                 </tbody>
             </table>
         </div>
@@ -148,22 +154,27 @@ table.tbl_hidden {
 
             function loadTasks(board) {
                 const add_task_row = (task, table) => {
-                    let tr           = document.createElement('tr');
-                    let td_title     = document.createElement('td');
-                    let td_is_closed = document.createElement('td');
+                    const row_data = [
+                        task.name,
+                        task.idList,
+                        ((task.idMembers.length > 0) ? task.idMembers[0] : '')
+                    ]
 
-                    td_title.textContent     = task.name;
-                    td_is_closed.textContent = task.closed ? 'Yes' : 'No';
-
-                    tr.appendChild(td_title);
-                    tr.appendChild(td_is_closed);
+                    let tr = document.createElement('tr');
+                    for (const cell of row_data) {
+                        let cell_element = document.createElement('td');
+                        cell_element.textContent = cell;
+                        tr.appendChild(cell_element);
+                    }
 
                     table.appendChild(tr);
                 }
 
-                const task_table_rows = document.getElementById('tbl_unit_list_rows');
+                const task_table_rows = document.getElementById('tbl_card_list_rows');
 
-                for(const task of board.cards) {
+                const active_cards = board.cards.filter(card => !card.closed);
+
+                for(const task of active_cards) {
                     // foo
                     add_task_row(task, task_table_rows);
                 }
