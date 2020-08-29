@@ -41,6 +41,11 @@ table.tbl_hidden {
 table#tbl_card_list {
     font-size: 9pt;
 }
+
+tr.flag_ses {
+    background: #DDAAAA;
+    font-weight: bold;
+}
 </style>
 </head>
 
@@ -93,6 +98,10 @@ table#tbl_card_list {
                         <th>Title</th>
                         <th>ListID</th>
                         <th>FirstMemberID</th>
+                        <th>Flag/SES?</th>
+                        <th>ADE?</th>
+                        <th>Emergent?</th>
+                        <th>MNP?</th>
                     </tr>
                 </thead>
                 <tbody id="tbl_card_list_rows">
@@ -154,10 +163,18 @@ table#tbl_card_list {
 
             function loadTasks(board) {
                 const add_task_row = (task, table) => {
+                    const task_is_labeled = (task, label) => {
+                        return task.labels.some((label_obj) => label_obj.name === label);
+                    };
+
                     const row_data = [
                         task.name,
                         task.idList,
-                        ((task.idMembers.length > 0) ? task.idMembers[0] : '')
+                        ((task.idMembers.length > 0) ? task.idMembers[0] : ''),
+                        task_is_labeled(task, "flag-ses"),
+                        task_is_labeled(task, "data"),
+                        task_is_labeled(task, 'emergent'),
+                        task_is_labeled(task, "ux"),
                     ]
 
                     let tr = document.createElement('tr');
@@ -167,6 +184,9 @@ table#tbl_card_list {
                         tr.appendChild(cell_element);
                     }
 
+                    if (row_data[3] /* Flag/SES */) {
+                        tr.classList.add('flag_ses');
+                    }
                     table.appendChild(tr);
                 }
 
