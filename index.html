@@ -71,31 +71,22 @@ table.tbl_hidden {
              unique divs with names starting with ui_. We use Javascript to set the appropriate
              style
         -->
-        <div id="ui_load_data" class="div_hidden">
+        <div id="ui_load_data">
             <div id="file_drop_target">Drop your Trello JSON file on me to load<br><br>
 
                 Or enter a file to upload: <input type='file' id='file_load_target'></input>
             </div>
-
-            <div id="file_load_msg" class="div_hidden row flex-spaces">
-                <input class="alert-state" id="file_load_alert" type="checkbox">
-
-                <div class="alert alert-secondary dismissable">
-                    Loading the Trello data...
-                    <label class="btn-close" for="file_load_alert">X</label>
-                </div>
-            </div>
         </div>
 
-        <div id="ui_show_tasks">
+        <div id="ui_show_tasks" class="div_hidden">
             <div id="output">
             </div>
 
-            <table id="tbl_unit_list" class="tbl_hidden">
+            <table id="tbl_unit_list">
                 <thead>
                     <tr>
-                        <th>UIC</th>
-                        <th>Activity Name</th>
+                        <th>Title</th>
+                        <th>Archived?</th>
                     </tr>
                 </thead>
                 <tbody id="tbl_unit_list_rows">
@@ -147,7 +138,7 @@ table.tbl_hidden {
             //
 
             // global vars
-            var g_tasks;
+            var g_boardData;
 
             showPage('ui_load_data');
 
@@ -155,16 +146,42 @@ table.tbl_hidden {
             // Event handlers (use globals)
             //
 
+            function loadTasks(board) {
+                const add_task_row = (task, table) => {
+                    let tr           = document.createElement('tr');
+                    let td_title     = document.createElement('td');
+                    let td_is_closed = document.createElement('td');
+
+                    td_title.textContent     = task.name;
+                    td_is_closed.textContent = task.closed ? 'Yes' : 'No';
+
+                    tr.appendChild(td_title);
+                    tr.appendChild(td_is_closed);
+
+                    table.appendChild(tr);
+                }
+
+                const task_table_rows = document.getElementById('tbl_unit_list_rows');
+
+                for(const task of board.cards) {
+                    // foo
+                    add_task_row(task, task_table_rows);
+                }
+            }
+
             function handleFileLoad(files) {
                 const file = files[0];
                 const reader = new FileReader();
-
-                document.getElementById('file_load_msg').classList.remove('div_hidden');
 
                 reader.onload = (e) => {
                     const resultObj  = JSON.parse(e.target.result);
 
                     output(`Board loaded, ${resultObj.cards.length} cards`);
+
+                    showPage('ui_show_tasks');
+                    g_boardData = resultObj;
+
+                    loadTasks(resultObj);
                 }
 
                 reader.onerror = (e) => {
