@@ -17,7 +17,7 @@ Drag-and-drop the Trello JSON extract from your board onto the drop area.
 The output panel at the bottom will automatically extract the tasks into a CSV
 format textarea that you can copy-and-paste out of.
 
-You can see the [live version](http://mpyne-navy.github.io/trello-stat-decoder/).
+You can see the [live version](http://mpyne-navy.github.io/trello-stat-decoder/index.html).
 
 NOTE: There are **no communications** with Trello, or any server, to make this
 work. Everything happens directly in the browser itself, and should even be
