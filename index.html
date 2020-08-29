@@ -102,6 +102,9 @@ tr.flag_ses {
                         <th>ADE?</th>
                         <th>Emergent?</th>
                         <th>MNP?</th>
+                        <th>Value</th>
+                        <th>Effort</th>
+                        <th>Cover Color</th>
                     </tr>
                 </thead>
                 <tbody id="tbl_card_list_rows">
@@ -175,6 +178,9 @@ tr.flag_ses {
                         task_is_labeled(task, "data"),
                         task_is_labeled(task, 'emergent'),
                         task_is_labeled(task, "ux"),
+                        '',    // Placeholder from a previously-used entry
+                        '',    // Placeholder from a previously-used entry
+                        task.cover.color || '',
                     ]
 
                     let tr = document.createElement('tr');
@@ -187,6 +193,11 @@ tr.flag_ses {
                     if (row_data[3] /* Flag/SES */) {
                         tr.classList.add('flag_ses');
                     }
+
+                    if (task.cover.color) {
+                        tr.style["color"] = task.cover.color;
+                    }
+
                     table.appendChild(tr);
                 }
 
