@@ -110,6 +110,27 @@ tr.flag_ses {
                 <tbody id="tbl_card_list_rows">
                 </tbody>
             </table>
+
+            <h3>Weekly Priorities</h3>
+
+            <div class="alert alert-warning">
+                <b>NOTE:</b> The priorities shown on the table below are as
+                of the date of the export, which <em>normally</em> applies to
+                the following week. If you want the priorities that applied
+                to the tasks on the table above, <u>you probably want the
+                priorities from last week's extract.</u>
+            </div>
+
+            <table id="tbl_priority_list">
+                <thead>
+                    <tr>
+                        <th>Color</th>
+                        <th>Priority</th>
+                    </tr>
+                </thead>
+                <tbody id="tbl_priority_list_rows">
+                </tbody>
+            </table>
         </div>
 
         <!-- Never used, should be hidden by the JS automatically -->
@@ -211,6 +232,45 @@ tr.flag_ses {
                 }
             }
 
+            function loadPriorities(board) {
+                const add_priority_row = (priority, table) => {
+                    const row_data = [
+                        priority.cover.color || "",
+                        priority.name,
+                    ]
+
+                    let tr = document.createElement('tr');
+                    for (const cell of row_data) {
+                        let cell_element = document.createElement('td');
+                        cell_element.textContent = cell;
+                        tr.appendChild(cell_element);
+                    }
+
+                    if (priority.cover.color) {
+                        tr.style["color"] = priority.cover.color;
+                    }
+
+                    table.appendChild(tr);
+                }
+
+                const priority_table_rows = document.getElementById('tbl_priority_list_rows');
+
+                // This list ID corresponds to the "Priorities" list. Perhaps more future
+                // proof to find the right list ID automatically? TODO
+                let priority_cards = board.cards .filter(card => card.idList == "5eed0245781f380cc246e16d");
+
+                priority_cards.sort((a, b) => {
+                    return (+a.pos < +b.pos) ? -1 :
+                           (+a.pos > +b.pos) ?  1 :
+                           0;
+                })
+
+                for(const priority of priority_cards) {
+                    // foo
+                    add_priority_row(priority, priority_table_rows);
+                }
+            }
+
             function handleFileLoad(files) {
                 const file = files[0];
                 const reader = new FileReader();
@@ -224,6 +284,7 @@ tr.flag_ses {
                     g_boardData = resultObj;
 
                     loadTasks(resultObj);
+                    loadPriorities(resultObj);
                 }
 
                 reader.onerror = (e) => {
