@@ -339,6 +339,21 @@ tr.flag_ses {
             let uploadTarget = document.getElementById('file_load_target');
             uploadTarget.addEventListener('change', handleFileUpload, false);
 
+            function addTableClickHighlighter(id_string) {
+                // Add a handler to automatically select the table if header is clicked
+                const cells = document.querySelectorAll(id_string);
+                const highlightCell = (event) => {
+                    window.getSelection().selectAllChildren(cells[0]);
+                }
+
+                cells.forEach(cell => {
+                    cell.addEventListener("click", highlightCell);
+                })
+            }
+
+            addTableClickHighlighter("#tbl_card_list");
+            addTableClickHighlighter("#tbl_priority_list");
+
         </script>
       </div>
     </div>
